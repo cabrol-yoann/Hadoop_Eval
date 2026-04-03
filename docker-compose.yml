@@ -105,7 +105,7 @@ services:
       - "7077:7077"   # port service
       - "8080:8080"   # port web
     volumes:
-      - ./etape_3:/etape_3
+      - ./Fichier_partager:/Fichier_partager
     depends_on:
       namenode:
         condition: service_healthy
