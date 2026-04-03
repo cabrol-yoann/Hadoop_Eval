@@ -1,0 +1,171 @@
+services:
+  namenode:
+    image: apache/hadoop:3.4.3
+    hostname: namenode
+    user: "0:0" # Pour avoir des droits très élevés
+    command:
+      - bash
+      - -lc
+      - |
+        mkdir -p /hadoop/dfs/name
+        if [ ! -f /hadoop/dfs/name/current/VERSION ]; then
+          hdfs namenode -format -force -nonInteractive
+        fi
+        exec hdfs namenode 
+    ports:
+      - "9870:9870" # port web
+      - "9000:9000" # port du service
+    volumes: 
+      - namenode_data:/hadoop/dfs/name
+      - ./Fichier_partager:/Fichier_partager
+    environment: 
+      - CORE-SITE.XML_fs.defaultFS=hdfs://namenode:9000
+      - HDFS-SITE.XML_dfs.replication=3
+      - HDFS-SITE.XML_dfs.namenode.name.dir=/hadoop/dfs/name
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9870/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  worker1:
+    image: apache/hadoop:3.4.3
+    hostname: worker1 
+    user: "0:0"
+    command:
+      - bash
+      - -lc
+      - |
+        mkdir -p /hadoop/dfs/data
+        exec hdfs datanode
+    volumes:
+      - worker1_data:/hadoop/dfs/data
+    environment:
+      - CORE-SITE.XML_fs.defaultFS=hdfs://namenode:9000
+      - HDFS-SITE.XML_dfs.datanode.data.dir=/hadoop/dfs/data  
+
+    depends_on:
+      namenode:
+        condition: service_healthy
+
+  worker2:
+    image: apache/hadoop:3.4.3
+    hostname: worker2
+    user: "0:0"
+    command:
+      - bash
+      - -lc
+      - |
+        mkdir -p /hadoop/dfs/data
+        exec hdfs datanode
+    volumes:
+      - worker2_data:/hadoop/dfs/data
+    environment:
+      - CORE-SITE.XML_fs.defaultFS=hdfs://namenode:9000
+      - HDFS-SITE.XML_dfs.datanode.data.dir=/hadoop/dfs/data  
+
+    depends_on:
+      namenode:
+        condition: service_healthy
+
+  worker3:
+    image: apache/hadoop:3.4.3
+    hostname: worker3 
+    user: "0:0"
+    command:
+      - bash
+      - -lc
+      - |
+        mkdir -p /hadoop/dfs/data
+        exec hdfs datanode
+    volumes:
+      - worker3_data:/hadoop/dfs/data
+    environment:
+      - CORE-SITE.XML_fs.defaultFS=hdfs://namenode:9000
+      - HDFS-SITE.XML_dfs.datanode.data.dir=/hadoop/dfs/data  
+    depends_on:
+      namenode:
+        condition: service_healthy
+
+  spark-master:
+    image: apache/spark:3.5.8-scala2.12-java17-python3-ubuntu
+    hostname: spark-master
+    user: "0:0"
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.master.Master
+      - --host
+      - spark-master
+      - --port
+      - "7077"
+      - --webui-port
+      - "8080"
+    ports:
+      - "7077:7077"   # port service
+      - "8080:8080"   # port web
+    volumes:
+      - ./etape_3:/etape_3
+    depends_on:
+      namenode:
+        condition: service_healthy
+
+  spark-worker1:
+    image: apache/spark:3.5.8-scala2.12-java17-python3-ubuntu
+    hostname: spark-worker1
+    user: "0:0"
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.worker.Worker
+      - spark://spark-master:7077
+      - --cores
+      - "2"
+      - --memory
+      - "1g"
+    volumes:
+      - ./Fichier_partager:/Fichier_partager
+    depends_on:
+      spark-master:
+        condition: service_started
+
+  spark-worker2:
+    image: apache/spark:3.5.8-scala2.12-java17-python3-ubuntu
+    hostname: spark-worker2
+    user: "0:0"
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.worker.Worker
+      - spark://spark-master:7077
+      - --cores
+      - "2"
+      - --memory
+      - "1g"
+    volumes:
+      - ./Fichier_partager:/Fichier_partager
+    depends_on:
+      spark-master:
+        condition: service_started
+
+  spark-worker3:
+    image: apache/spark:3.5.8-scala2.12-java17-python3-ubuntu
+    hostname: spark-worker3
+    user: "0:0"
+    command:
+      - /opt/spark/bin/spark-class
+      - org.apache.spark.deploy.worker.Worker
+      - spark://spark-master:7077
+      - --cores
+      - "2"
+      - --memory
+      - "1g"
+    volumes:
+      - ./Fichier_partager:/Fichier_partager
+    depends_on:
+      spark-master:
+        condition: service_started
+ 
+volumes:
+  namenode_data:
+  worker1_data:
+  worker2_data:
+  worker3_data: 
