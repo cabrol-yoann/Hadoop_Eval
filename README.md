@@ -59,6 +59,7 @@ hdfs dfs -mkdir -p /mr/donne
 ```bash
 hdfs dfs -put -f /Fichier_partager/donne/u.item /mr/donne/
 hdfs dfs -put -f /Fichier_partager/donne/u.data /mr/donne/
+hdfs dfs -put -f /Fichier_partager/donne/u.genre /mr/donne/
 ```
 
 ⚠️ Assurez-vous que les fichiers u.user et u.data existent bien dans le dossier /Fichier_partager/donne/ de votre projet avant de les uploader.
