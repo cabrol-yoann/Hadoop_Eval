@@ -13,7 +13,6 @@ services:
         fi
         exec hdfs namenode 
     ports:
-      - "9870:9870" # port web
       - "9000:9000" # port du service
     volumes: 
       - namenode_data:/hadoop/dfs/name
@@ -99,11 +98,8 @@ services:
       - spark-master
       - --port
       - "7077"
-      - --webui-port
-      - "8080"
     ports:
       - "7077:7077"   # port service
-      - "8080:8080"   # port web
     volumes:
       - ./Fichier_partager:/Fichier_partager
     depends_on:
