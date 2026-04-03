@@ -97,7 +97,7 @@ joinTable.groupBy("movie title").avg("rating").withColumnRenamed("avg(rating)", 
 print("\n==============================")
 print("Les 10 films ayant la plus mauvaise note moyenne (avec leur titre)")
 print("==============================")
-joinTable.select(["movie title","rating"]).orderBy("rating").show(10)
+joinTable.select(["movie title","rating"]).avg("rating").withColumnRenamed("avg(rating)", "rating moyen").orderBy("rating").show(10)
 
 
 print("\n==============================")
